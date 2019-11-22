@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class='container'>
+	<div class='row'>
+		<div class='col-6'>
+			<form method='POST'>
+				<h1>Share Post</h1>
+				{% csrf_token %}
+				{{form|crispy}}
+				<input class='btn btn-success' type='submit' value='Share'>
+			</form> 
+		</div>
+	</div>
+</div>
+
+{% endblock %}

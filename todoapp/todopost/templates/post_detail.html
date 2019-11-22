@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class='col-sm-12'>
+
+    <h1>{{ post.name }}</h1>
+    
+    
+    <p class='lead'>{{ post.text }}</p>
+    
+    <small>{{ post.published }} By: {{post.author}}</small>
+    
+    
+    <h2>Comments</h2>
+    <hr>
+    {% for comment in comments %}
+    <div class='col-sm-12' id='comment-{{comment.id}}'>
+    <p>{{ comment.comment_text }}</p>
+    <small>Author: {{ comment.author.username }}</small>
+    {% if request.user == comment.author or request.user == post.author %}
+    <a class="btn btn-danger text-light" style="margin-left: 100px;" onClick="deleteComment({{comment.id}})">DELETE</a>
+    {% endif %}
+    {% if request.user == comment.author %}
+    <a class="btn btn-primary text-light" href="{% url 'comment-update' comment.id %}" style="margin-left: 100px;">UPDATE</a>
+    {% endif %}
+    <br>
+    <hr>
+    </div>
+    {% endfor %}
+    <div class='col-sm-12' id='comments'>
+    </div>
+    <form action='' id='comments_form' method='POST'>
+    <input type='hidden' id='user' value="{{ user.username }}", data-post='{{ post.id }}'>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type='submit' class='btn btn-primary' value='Submit'>
+    </form>
+    </div>
+<script>
+    var socket_url = 'ws://' + window.location.host + window.location.pathname
+    console.log(socket_url)
+
+    var socket = new WebSocket(socket_url)
+
+    socket.onmessage = function(event){
+        console.log(event)
+        var newComment = JSON.parse(event.data)
+        $("#comments").append('<p>' + newComment.comment_text + '</p>' + '<small>' + 'Author: ' + newComment.author + '</small><br><hr>')
+    }
+
+    socket.onopen = function(event){
+        console.log('socket opened', event)
+        var form = $('#comments_form')
+        form.submit(function(e){
+            e.preventDefault()
+            var comment_text = $("#id_comment_text").val()
+            var post_id = $("#user").attr('data-post')
+            var author = $("#user").val()
+            data = {
+                'comment_text':comment_text,
+                'post_id':post_id,
+                'author':author,
+            }
+            socket.send(JSON.stringify(data))
+            form[0].reset()
+        })
+    }
+
+    socket.onclose = function(event){
+        console.log('socket closed', event)
+    }
+</script>
+{% endblock content %}
+{% block javascript %}
+function deleteComment(id) {
+    $.ajax({
+        url: '{% url "comment-delete" %}',
+        data: {
+            'id': id,
+        },
+        dataType: 'json',
+        success: function (data) {
+            if (data.deleted) {
+              $("#comment-" + id).remove();
+            }
+        }
+    });
+}
+{% endblock %}

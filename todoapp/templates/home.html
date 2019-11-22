@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+{% for post in posts %}
+<div class='col-sm-12' id='post-{{post.id}}'>
+	<h1><a href='{% url "post-detail" post.id %}'>{{ post.name }}</a></h1>
+	<p>{{ post.text|truncatewords:20 }}</p>
+	{% if post.author == request.user %}
+	<a class="btn btn-danger text-light" onClick="deletePost({{post.id}})">DELETE</a>
+	<a class="btn btn-success text-light" href='{% url "post-share" post.id %}'>SHARE</a>
+	<a class="btn btn-primary text-light" href='{% url "post-update" post.id %}'>UPDATE</a>
+	{% endif %}
+	<br>
+	<small>{{ post.published }}        By: {{post.author}}</small>
+</div>
+<hr>
+{% endfor %}
+
+{% endblock content %}
+
+{% block javascript %}
+function deletePost(id) {
+    $.ajax({
+        url: '{% url "post-delete" %}',
+        data: {
+            'id': id,
+        },
+        dataType: 'json',
+        success: function (data) {
+            if (data.deleted) {
+              $("#post-" + id).remove();
+            }
+        }
+    });
+}
+{% endblock %}
