@@ -18,6 +18,6 @@ def notification(source_id):
     send_mail('Hey {}'.format(m1.author.username),
     'There are 10 minutes for finishing of post',
     'fhuseynov803@gmail.com',
-    ['fariba9661@tmailcloud.com'],
+    [m1.author.email],
     fail_silently=False)
     return None
